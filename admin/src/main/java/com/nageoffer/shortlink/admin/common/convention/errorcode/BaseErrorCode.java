@@ -1,16 +1,6 @@
 package com.nageoffer.shortlink.admin.common.convention.errorcode;
 
-/**
- * @projectName: shortlink
- * @package: com.nageoffer.shortlink.admin.common.enums
- * @className: BaseErrorCode
- * @author: 姬紫衣
- * @description: 基础错误码定义
- * @date: 2024/7/30 14:02
- * @version: 1.0
- */
 
-import com.nageoffer.shortlink.admin.common.convention.errorcode.IErrorCode;
 
 /**
  * 基础错误码定义
