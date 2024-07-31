@@ -14,6 +14,8 @@ import com.nageoffer.shortlink.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
 
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,9 @@ import static com.nageoffer.shortlink.admin.common.enums.UserErrorCodeEnum.USER_
 public class UserServiceImpl extends ServiceImpl<UserMapper , UserDO> implements UserService {
 
     private final RBloomFilter<String> userRegisterCachePenetrationBloomFilter;
+    private final RedissonClient redissonClient;
+
+
     @Override
     public UserRespDTO getUserByUsername(String username) {
         LambdaQueryWrapper<UserDO> queryWrapper = Wrappers.
@@ -60,14 +65,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper , UserDO> implements
             throw new ClientException(USER_NAME_EXIST);
         }
         //2.1.不存在，存入数据库
+        //2.1.2获取redission分布式锁
         UserDO userDO = new UserDO();
         BeanUtil.copyProperties(userRegisterReqDTO , userDO);
-        int insert = baseMapper.insert(userDO);
-        if(insert < 0)
-        {
-            throw new ClientException(USER_SAVE_ERROR);
+
+        RLock lock = redissonClient.getLock("LOCK_USER_REGISTER_KEY"+ username);
+
+        try {
+            if(lock.tryLock())
+            {
+                int insert = baseMapper.insert(userDO);
+                if(insert < 0)
+                {
+                    throw new ClientException(USER_SAVE_ERROR);
+                }
+                //2.2加入布隆过滤器
+                userRegisterCachePenetrationBloomFilter.add(username);
+                return;
+            }
+            //没获取到锁，返回错误
+            throw new ClientException(USER_NAME_EXIST);
+        }finally {
+            lock.unlock();
         }
-        //2.2加入布隆过滤器
-        userRegisterCachePenetrationBloomFilter.add(username);
+
+
     }
 }
