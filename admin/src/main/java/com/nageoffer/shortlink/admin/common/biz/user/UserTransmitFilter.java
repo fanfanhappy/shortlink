@@ -31,21 +31,22 @@ public class UserTransmitFilter implements Filter {
 
 
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        String userId = httpServletRequest.getHeader("username");
-
-        //从请求头里拿到username
-        String userName = httpServletRequest.getHeader("username");
-        //从请求头拿到token
-        String token = httpServletRequest.getHeader("token");
-        //从redis里拿到存入的用户（JSON）
-        Object userJson = stringRedisTemplate.opsForHash().get("login_" + userName, token);
-        if (userJson != null) {
-            //将json转为对象
-            UserInfoDTO userInfoDTO = JSON.parseObject(userJson.toString(), UserInfoDTO.class);
-            //加入用户上下文
-            UserContext.setUser(userInfoDTO);
+        String requestURI = httpServletRequest.getRequestURI();
+        if(!requestURI.equals("/api/short-link/admin/v1/user/login"))
+        {
+            //从请求头里拿到username
+            String userName = httpServletRequest.getHeader("username");
+            //从请求头拿到token
+            String token = httpServletRequest.getHeader("token");
+            //从redis里拿到存入的用户（JSON）
+            Object userJson = stringRedisTemplate.opsForHash().get("login_" + userName, token);
+            if (userJson != null) {
+                //将json转为对象
+                UserInfoDTO userInfoDTO = JSON.parseObject(userJson.toString(), UserInfoDTO.class);
+                //加入用户上下文
+                UserContext.setUser(userInfoDTO);
+            }
         }
-
 
         try {
             filterChain.doFilter(servletRequest, servletResponse);
