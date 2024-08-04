@@ -148,4 +148,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper , UserDO> implements
             return false;
         }
     }
+
+    @Override
+    public void loginOut(String username, String token) {
+        //判断是否正在登录状态
+        if (checkLogin(username , token))
+        {
+            stringRedisTemplate.opsForHash().delete("login_" + username , token);
+            return;
+        }else {
+            throw new ClientException("用户没有登录或Token不存在");
+        }
+    }
 }
