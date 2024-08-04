@@ -3,7 +3,10 @@ package com.nageoffer.shortlink.admin.controller;
 import com.nageoffer.shortlink.admin.common.convention.result.Result;
 import com.nageoffer.shortlink.admin.common.convention.result.Results;
 import com.nageoffer.shortlink.admin.common.enums.UserErrorCodeEnum;
+import com.nageoffer.shortlink.admin.dto.req.UserLoginReqDTO;
 import com.nageoffer.shortlink.admin.dto.req.UserRegisterReqDTO;
+import com.nageoffer.shortlink.admin.dto.req.UserUpdateReqDTO;
+import com.nageoffer.shortlink.admin.dto.resp.UserLoginRespDTO;
 import com.nageoffer.shortlink.admin.dto.resp.UserRespDTO;
 import com.nageoffer.shortlink.admin.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +47,32 @@ public class UserController {
     {
         userService.register(userRegisterReqDTO);
         return Results.success();
+    }
+
+    @PutMapping("/api/short-link/admin/v1/user")
+    public Result<Void> update(@RequestBody UserUpdateReqDTO userUpdateReqDTO)
+    {
+        userService.update(userUpdateReqDTO);
+        return Results.success();
+    }
+
+
+    /**
+     * 用户登录
+     * @param userLoginReqDTO
+     * @return
+     */
+    @PostMapping("/api/short-link/admin/v1/user/login")
+    public Result<UserLoginRespDTO> login(@RequestBody UserLoginReqDTO userLoginReqDTO)
+    {
+        UserLoginRespDTO userLoginRespDTO = userService.login(userLoginReqDTO);
+        return Results.success(userLoginRespDTO);
+    }
+
+
+    @GetMapping("/api/short-link/admin/v1/user/check-login")
+    public Result<Boolean> checkLogin(@RequestParam("username") String username , @RequestParam("token") String token)
+    {
+        return Results.success(userService.checkLogin(username , token));
     }
 }
